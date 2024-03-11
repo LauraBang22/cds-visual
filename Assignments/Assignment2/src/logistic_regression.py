@@ -29,15 +29,15 @@ from tensorflow.keras.datasets import cifar10
 def load_data():
     return cifar10.load_data()
 
-def reshape_data():
+def reshape_data(X_train, X_test):
     X_list_train = []
 
     for image in X_train:
-    X_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    X_normalized = X_grey/255
-    X_list_train.append(X_normalized)
+        X_grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        X_normalized = X_grey/255
+        X_list_train.append(X_normalized)
 
-    X_train_final = np.array(X_list).reshape(-1, 1024)
+    X_train_final = np.array(X_list_train).reshape(-1, 1024)
 
     X_list_test = []
 
@@ -46,28 +46,29 @@ def reshape_data():
         X_normalized = X_grey/255
         X_list_test.append(X_normalized)
 
-    X_test_final = np.array(X_list).reshape(-1, 1024)
+    X_test_final = np.array(X_list_test).reshape(-1, 1024)
     return X_test_final, X_train_final
 
-def classifier(X_test_final, X_train_final):
+def classifier(X_test_final, X_train_final, y_test, y_train):
     classifierLogistic = LogisticRegression(tol=0.1, 
                          solver='saga',
                          multi_class='multinomial').fit(X_train_final, y_train)
     y_pred = classifierLogistic.predict(X_test_final)
-    classifier_metrics_logistic = metrics.classification_report(y_test, y_pred, target_names= labels)
+    classifier_metrics_logistic = metrics.classification_report(y_test, y_pred, target_names= ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"])
     print(classifier_metrics_logistic)
     return classifier_metrics_logistic
 
 def file_save(classifier_metrics_logistic):
-    text_file = open("../out/neuralnetwork.txt", 'w')
+    text_file = open("../out/logisticregression.txt", 'w')
     text_file.write(classifier_metrics_logistic)
     text_file.close()
 
 
 def main():
     (X_train, y_train), (X_test, y_test) = load_data()
-    x_test = reshape_data()
-    classifier(x_test)
+    X_test_final, X_train_final = reshape_data(X_train, X_test)
+    classifier_metrics_logistic = classifier(X_test_final, X_train_final, y_test, y_train)
+    file_save(classifier_metrics_logistic)
 
 if __name__=="__main__":
     main()
