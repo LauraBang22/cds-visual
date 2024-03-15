@@ -52,9 +52,10 @@ def reshape_data(X_train, X_test):
 
 def classifier(X_test_final, X_train_final, y_test, y_train):
     classifierMLP = MLPClassifier(activation = "logistic",
-                           hidden_layer_sizes = (2,),
+                           hidden_layer_sizes = (70,),
                            max_iter=1000,
-                           random_state = 42).fit(X_train_final, y_train)
+                           random_state = 42,
+                           verbose=True).fit(X_train_final, y_train)
     y_pred = classifierMLP.predict(X_test_final)
     classifier_metrics_neural = metrics.classification_report(y_test, y_pred, target_names= ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"])
     print(classifier_metrics_neural)
@@ -68,7 +69,6 @@ def loss_curve(classifierMLP):
     plt.savefig("../out/loss_curve.png")
     plt.show()
     
-
 def file_save(classifier_metrics_neural):
     text_file = open("../out/neural.txt", 'w')
     text_file.write(classifier_metrics_neural)
@@ -77,7 +77,7 @@ def file_save(classifier_metrics_neural):
 def main():
     (X_train, y_train), (X_test, y_test) = load_data()
     X_test_final, X_train_final = reshape_data(X_train, X_test)
-    classifier_metrics_neural = classifier(X_test_final, X_train_final, y_test, y_train)
+    classifier_metrics_neural, classifierMLP = classifier(X_test_final, X_train_final, y_test, y_train)
     file_save(classifier_metrics_neural)
     loss_curve(classifierMLP)
 
