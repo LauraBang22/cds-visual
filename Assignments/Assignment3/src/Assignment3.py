@@ -139,12 +139,19 @@ def plot_history(H, epochs):
     plt.tight_layout()
     plt.legend()
     plt.show()
+    plt.savefig("out/loss_curve.png")
 
-def predictions(X_test, y_test, labelNames):
+def predictions(model, X_test, y_test, labelNames):
     predictions = model.predict(X_test, batch_size=128)
-    print(classification_report(y_test.argmax(axis=1),
+    classification = classification_report(y_test.argmax(axis=1),
                                 predictions.argmax(axis=1),
-                                target_names=labelNames))
+                                target_names=labelNames)
+    return classification
+
+
+def file_save(classification):
+    with open('out/classification.txt', 'w') as text_file:
+        text_file.write(classification)
 
 def main():
     images, labels = load_data()
@@ -154,12 +161,13 @@ def main():
     sgd = learning_rate()
     model = compile_model(sgd, model)
     
-    epochs = 2
+    epochs = 15
     H = train_model(model, X_train, y_train, epochs)
     
     plot_history(H, epochs)
     
-    predictions(X_test, y_test, labelNames)
+    classification = predictions(model, X_test, y_test, labelNames)
+    file_save(classification)
 
 if __name__ == "__main__":
     main()
