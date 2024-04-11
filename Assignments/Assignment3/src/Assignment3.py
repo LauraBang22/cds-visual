@@ -161,7 +161,7 @@ def main():
     sgd = learning_rate()
     model = compile_model(sgd, model)
     
-    epochs = 15
+    epochs = 25
     H = train_model(model, X_train, y_train, epochs)
     
     plot_history(H, epochs)
