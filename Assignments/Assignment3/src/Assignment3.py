@@ -1,47 +1,37 @@
+#The different things needed to run this code
 import os
 import cv2
-
-# tf tools
 import tensorflow as tf
 
-# image processsing
 from tensorflow.keras.preprocessing.image import (load_img,
                                                   img_to_array,
                                                   ImageDataGenerator)
-# VGG16 model
 from tensorflow.keras.applications.vgg16 import (preprocess_input,
                                                  decode_predictions,
                                                  VGG16)
-# cifar10 data - 32x32
 from tensorflow.keras.datasets import cifar10
-
-# layers
 from tensorflow.keras.layers import (Flatten, 
                                      Dense, 
                                      Dropout, 
                                      BatchNormalization)
-# generic model object
-from tensorflow.keras.models import Model
 
-# optimizers
+from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
 from tensorflow.keras.optimizers import SGD, Adam
-
-#scikit-learn
 from sklearn.preprocessing import LabelBinarizer
 from sklearn.metrics import classification_report
 from sklearn.model_selection import train_test_split
-
-# for plotting
 import numpy as np
 import matplotlib.pyplot as plt
 
+#Defining labels names
 labelNames = ["ADVE", "Email", 
               "Form", "Letter", 
               "Memo", "News", 
               "Note", "Report", 
               "Resume", "Scientific"]
 
+#Loading the data, and giving the images a label each
 def load_data():
     main_folder_path = ("in/Tobacco3482-jpg") # the folder that contains the images
     sorted_dir = sorted(os.listdir(main_folder_path))
@@ -63,7 +53,7 @@ def load_data():
                 images.append(image)
     return images, labels
 
-
+#reshape and normalize the data
 def reshape_data(images, labels):
     X_train, X_test, y_train, y_test = train_test_split(images, labels, test_size=0.2, random_state=42)
 
@@ -76,6 +66,7 @@ def reshape_data(images, labels):
 
     return X_train, X_test, y_train, y_test
 
+#loading the model
 def load_model():
     model = VGG16(include_top=False, 
               pooling='avg',
@@ -84,17 +75,16 @@ def load_model():
     for layer in model.layers:
         layer.trainable = False
 
-    # add new classifier layers
     flat1 = Flatten()(model.layers[-1].output)
     class1 = Dense(128, activation='relu')(flat1)
     output = Dense(10, activation='softmax')(class1)
 
-    # define new model
     model = Model(inputs=model.inputs, 
                 outputs=output)
     
     return model
 
+#defining the learning rate
 def learning_rate():
     lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
         initial_learning_rate=0.01,
@@ -104,6 +94,7 @@ def learning_rate():
 
     return sgd
 
+#compiling the model, so the learning rate is added to it
 def compile_model(sgd, model):
     model.compile(optimizer=sgd,
               loss='categorical_crossentropy',
@@ -111,6 +102,7 @@ def compile_model(sgd, model):
     
     return model
 
+#train the model on the data
 def train_model(model, X_train, y_train, epochs):
     H = model.fit(X_train, y_train, 
                 validation_split=0.1,
@@ -119,6 +111,7 @@ def train_model(model, X_train, y_train, epochs):
                 verbose=1)
     return H
 
+#plotting the loss curve over the trained model
 def plot_history(H, epochs):
     plt.figure(figsize=(12,6))
     plt.subplot(1,2,1)
@@ -141,6 +134,7 @@ def plot_history(H, epochs):
     plt.show()
     plt.savefig("out/loss_curve.png")
 
+#making the classification report based on predictions
 def predictions(model, X_test, y_test, labelNames):
     predictions = model.predict(X_test, batch_size=128)
     classification = classification_report(y_test.argmax(axis=1),
@@ -148,7 +142,7 @@ def predictions(model, X_test, y_test, labelNames):
                                 target_names=labelNames)
     return classification
 
-
+#save the classification report
 def file_save(classification):
     with open('out/classification.txt', 'w') as text_file:
         text_file.write(classification)
